@@ -1,6 +1,6 @@
 # Shuck
 
-Copy text from Claude Code, press **⌃⌥⌘V**, and it pastes without the terminal's line breaks.
+Copy text from Claude Code, press <kbd>⌃⌥⌘V</kbd>, and it pastes without the terminal's line breaks.
 
 Copied from the terminal:
 
@@ -33,7 +33,7 @@ Requires macOS 13 or later, on Apple Silicon or Intel.
 
 1. Download `Shuck.zip` from the [latest release](https://github.com/levibe/shuck/releases/latest), unzip it, and move Shuck into Applications.
 2. Open it. macOS blocks it because it isn't notarized; click **Open Anyway** in System Settings > Privacy & Security.
-3. Press ⌃⌥⌘V once and allow Accessibility when asked.
+3. Press <kbd>⌃⌥⌘V</kbd> once and allow Accessibility when asked.
 
 Repeat step 2 for each new version.
 
@@ -41,7 +41,7 @@ Repeat step 2 for each new version.
 
 Shuck runs in the background, with no window or menu bar icon.
 
-- **⌃⌥⌘V** pastes the clipboard without the line breaks. Pressing it again pastes the same result.
+- <kbd>⌃⌥⌘V</kbd> pastes the clipboard without the line breaks. Pressing it again pastes the same result.
 - **Right-click > Services > Shuck and Paste** does the same in most native Mac apps. Slack and other Electron apps don't show Services, so use the shortcut there.
 
 The shortcut can't be changed. Pasted text is plain, so bold, links and other formatting are dropped.
@@ -50,7 +50,7 @@ Shuck starts at login; turn that off in System Settings > General > Login Items.
 
 ## Accessibility and privacy
 
-The shortcut needs Accessibility access so Shuck can press ⌘V for you. macOS asks the first time you use it. Until you allow it, the shortcut beeps instead of pasting, but the clipboard is still cleaned up, so ⌘V pastes the result. The right-click item doesn't need access.
+The shortcut needs Accessibility access so Shuck can press <kbd>⌘V</kbd> for you. macOS asks the first time you use it. Until you allow it, the shortcut beeps instead of pasting, but the clipboard is still cleaned up, so <kbd>⌘V</kbd> pastes the result. The right-click item doesn't need access.
 
 Shuck only reads the clipboard when you use it, and never connects to the network.
 
@@ -103,7 +103,7 @@ Shuck guesses from line lengths and shape instead of parsing markdown:
 
 ### Limitations
 
-- The longest line can merge with an unrelated line after it. To get the original, copy it again and paste with ⌘V.
+- The longest line can merge with an unrelated line after it. To get the original, copy it again and paste with <kbd>⌘V</kbd>.
 - A URL that starts a new terminal row stays on its own line instead of joining the text before it.
 - An indented list under an unindented line loses its indent.
 
