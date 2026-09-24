@@ -10,6 +10,8 @@
 	<string>Shuck</string>
 	<key>CFBundleExecutable</key>
 	<string>Shuck</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

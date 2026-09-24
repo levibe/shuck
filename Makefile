@@ -1,5 +1,6 @@
 APP := build/Shuck.app
 ZIP := build/Shuck.zip
+ICON := build/AppIcon.icns
 ARCHS := arm64 x86_64
 # The ad-hoc default changes with every build, which voids the Accessibility grant;
 # pass a real identity (e.g. a Developer ID) to keep it.
@@ -9,13 +10,19 @@ XCODE_DEVELOPER ?= /Applications/Xcode.app/Contents/Developer
 
 .PHONY: build test install dist clean
 
-build:
+build: $(ICON)
 	swift build -c release --product shuck
 	for arch in $(ARCHS); do swift build -c release --arch $$arch --product ShuckApp || exit 1; done
-	mkdir -p $(APP)/Contents/MacOS
+	mkdir -p $(APP)/Contents/MacOS $(APP)/Contents/Resources
 	lipo -create -output $(APP)/Contents/MacOS/Shuck $(foreach arch,$(ARCHS),.build/$(arch)-apple-macosx/release/ShuckApp)
 	cp Resources/Info.plist $(APP)/Contents/Info.plist
+	cp $(ICON) $(APP)/Contents/Resources/AppIcon.icns
 	codesign --force --sign "$(SIGN_IDENTITY)" $(APP)
+
+$(ICON): Scripts/make-icon.swift
+	rm -rf build/AppIcon.iconset
+	swift Scripts/make-icon.swift build/AppIcon.iconset
+	iconutil -c icns -o $@ build/AppIcon.iconset
 
 test:
 	DEVELOPER_DIR=$(XCODE_DEVELOPER) swift test
