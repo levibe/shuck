@@ -36,7 +36,8 @@ install: build
 	/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f ~/Applications/Shuck.app
 	/System/Library/CoreServices/pbs -update
 	mkdir -p ~/.local/bin
-	cp .build/release/shuck ~/.local/bin/shuck
+	# Not .build/release: SwiftPM points that at the last --arch built, which lacks the CLI.
+	cp "$$(swift build -c release --show-bin-path)/shuck" ~/.local/bin/shuck
 
 dist: build
 	rm -f $(ZIP)
