@@ -3,7 +3,7 @@ ZIP := build/Shuck.zip
 ICON := build/AppIcon.icns
 ARCHS := arm64 x86_64
 # The ad-hoc default changes with every build, which voids the Accessibility grant;
-# pass a real identity (e.g. a Developer ID) to keep it.
+# pass a stable identity (a self-signed Code Signing certificate works) to keep it.
 SIGN_IDENTITY ?= -
 # Command Line Tools' SwiftPM can't find the swift-testing framework; Xcode's can.
 XCODE_DEVELOPER ?= /Applications/Xcode.app/Contents/Developer

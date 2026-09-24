@@ -35,7 +35,7 @@ Requires macOS 13 or later, on Apple Silicon or Intel.
 2. Open it. macOS blocks it because it isn't notarized; click **Open Anyway** in System Settings > Privacy & Security.
 3. Press ⌃⌥⌘V once and allow Accessibility when asked.
 
-Steps 2 and 3 repeat for each new version.
+Repeat step 2 for each new version.
 
 ## Using it
 
@@ -54,7 +54,7 @@ The shortcut needs Accessibility access so Shuck can press ⌘V for you. macOS a
 
 Shuck only reads the clipboard when you use it, and never connects to the network.
 
-Shuck is ad-hoc signed, so macOS treats each new version as a new app. After updating, remove Shuck from the Accessibility list and add it again.
+Updates keep Accessibility access, because every release is signed with the same certificate.
 
 ## Command line
 
@@ -77,7 +77,13 @@ This installs Shuck to `~/Applications` and the `shuck` command to `~/.local/bin
 
 - `make test` runs the tests. It needs Xcode; set `XCODE_DEVELOPER` if Xcode isn't in `/Applications`.
 - `make dist` builds `build/Shuck.zip` for Apple Silicon and Intel.
-- `SIGN_IDENTITY` signs with a real identity (e.g. a Developer ID) instead of ad hoc, so the Accessibility grant survives rebuilds.
+- `SIGN_IDENTITY` sets the signing certificate. Without one, macOS treats every build as a new app, and you have to allow Accessibility again after each rebuild.
+
+A free self-signed certificate works:
+
+1. In Keychain Access, choose Keychain Access > Certificate Assistant > Create a Certificate.
+2. Set Identity Type to Self Signed Root and Certificate Type to Code Signing. Tick "Let me override defaults" to make it last longer than a year.
+3. Build with `make install SIGN_IDENTITY="<name>"`, or export `SIGN_IDENTITY` in your shell profile.
 
 ## How it decides
 
