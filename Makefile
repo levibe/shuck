@@ -41,7 +41,8 @@ install: build
 
 dist: build
 	rm -f $(ZIP)
-	ditto -c -k --keepParent $(APP) $(ZIP)
+	# No ._ AppleDouble files: `unzip` would put them inside the bundle and break its signature.
+	ditto -c -k --norsrc --noextattr --keepParent $(APP) $(ZIP)
 
 clean:
 	swift package clean
