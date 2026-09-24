@@ -1,0 +1,106 @@
+# Shuck
+
+Copy text from Claude Code, press **⌃⌥⌘V**, and it pastes without the terminal's line breaks.
+
+Copied from the terminal:
+
+```
+⏺ The release build failed on the second try because one flaky
+  network step timed out, so I reran the job and it passed.
+  The full log is still on the Actions tab if you want it.
+
+  Next steps:
+  - Merge the pull request once the review comes back, then
+    tag the release
+  - Update the changelog
+```
+
+Pasted with Shuck:
+
+```
+The release build failed on the second try because one flaky network step timed out, so I reran the job and it passed. The full log is still on the Actions tab if you want it.
+
+Next steps:
+- Merge the pull request once the review comes back, then tag the release
+- Update the changelog
+```
+
+It works on any terminal or hard-wrapped text. Wrapped shell commands become one line again, and lists, headings, tables and code stay as they are.
+
+## Installing
+
+Requires macOS 13 or later, on Apple Silicon or Intel.
+
+1. Download `Shuck.zip` from the [latest release](https://github.com/levibe/shuck/releases/latest), unzip it, and move Shuck into Applications.
+2. Open it. macOS blocks it because it isn't notarized; click **Open Anyway** in System Settings > Privacy & Security.
+3. Press ⌃⌥⌘V once and allow Accessibility when asked.
+
+Steps 2 and 3 repeat for each new version.
+
+## Using it
+
+Shuck runs in the background, with no window or menu bar icon.
+
+- **⌃⌥⌘V** pastes the clipboard without the line breaks. Pressing it again pastes the same result.
+- **Right-click > Services > Shuck and Paste** does the same in most native Mac apps. Slack and other Electron apps don't show Services, so use the shortcut there.
+
+The shortcut can't be changed. Pasted text is plain, so bold, links and other formatting are dropped.
+
+Shuck starts at login; turn that off in System Settings > General > Login Items. To quit, run `killall Shuck` or use Activity Monitor.
+
+## Accessibility and privacy
+
+The shortcut needs Accessibility access so Shuck can press ⌘V for you. macOS asks the first time you use it. Until you allow it, the shortcut beeps instead of pasting, but the clipboard is still cleaned up, so ⌘V pastes the result. The right-click item doesn't need access.
+
+Shuck only reads the clipboard when you use it, and never connects to the network.
+
+Shuck is ad-hoc signed, so macOS treats each new version as a new app. After updating, remove Shuck from the Accessibility list and add it again.
+
+## Command line
+
+The `shuck` command does the same in a shell. It's not in the release zip, so [build from source](#building-from-source) to get it.
+
+```
+pbpaste | shuck        # stdin to stdout
+shuck                  # no stdin: clean up the clipboard in place
+```
+
+## Building from source
+
+Needs Swift 6 (Xcode 16 or later, or its Command Line Tools).
+
+```
+make install
+```
+
+This installs Shuck to `~/Applications` and the `shuck` command to `~/.local/bin`, which needs to be on your `PATH`.
+
+- `make test` runs the tests. It needs Xcode; set `XCODE_DEVELOPER` if Xcode isn't in `/Applications`.
+- `make dist` builds `build/Shuck.zip` for Apple Silicon and Intel.
+- `SIGN_IDENTITY` signs with a real identity (e.g. a Developer ID) instead of ad hoc, so the Accessibility grant survives rebuilds.
+
+## How it decides
+
+Shuck guesses from line lengths and shape instead of parsing markdown:
+
+- Removes trailing spaces and Claude Code's 2-space margin, even when your selection starts at the first word.
+- Takes the longest line with a space in it as the wrap width.
+- Joins a line to the one before only if its first word wouldn't have fit there. Otherwise the break was on purpose, so it stays.
+- Never merges list items (including ✓ or → bullets), headings, blockquotes, tables, aligned columns, fenced code, or lines ending in `\`.
+- Leaves a long path or URL on its own line alone, but rejoins a URL the terminal cut mid-word.
+
+### Limitations
+
+- The longest line can merge with an unrelated line after it. To get the original, copy it again and paste with ⌘V.
+- A URL that starts a new terminal row stays on its own line instead of joining the text before it.
+- An indented list under an unindented line loses its indent.
+
+## Uninstalling
+
+1. Quit Shuck with `killall Shuck`.
+2. Delete Shuck from Applications (or `~/Applications` if you built it), and `~/.local/bin/shuck` if you installed the command.
+3. Remove Shuck from System Settings > General > Login Items and from Privacy & Security > Accessibility.
+
+## License
+
+[MIT](LICENSE)
