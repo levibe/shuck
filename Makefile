@@ -11,12 +11,14 @@ XCODE_DEVELOPER ?= /Applications/Xcode.app/Contents/Developer
 .PHONY: build test install dist clean
 
 build: $(ICON)
-	swift build -c release --product shuck
-	for arch in $(ARCHS); do swift build -c release --arch $$arch --product ShuckApp || exit 1; done
-	mkdir -p $(APP)/Contents/MacOS $(APP)/Contents/Resources
+	for arch in $(ARCHS); do for product in shuck ShuckApp; do swift build -c release --arch $$arch --product $$product || exit 1; done; done
+	mkdir -p $(APP)/Contents/MacOS $(APP)/Contents/Helpers $(APP)/Contents/Resources
 	lipo -create -output $(APP)/Contents/MacOS/Shuck $(foreach arch,$(ARCHS),.build/$(arch)-apple-macosx/release/ShuckApp)
+	lipo -create -output $(APP)/Contents/Helpers/shuck $(foreach arch,$(ARCHS),.build/$(arch)-apple-macosx/release/shuck)
 	cp Resources/Info.plist $(APP)/Contents/Info.plist
 	cp $(ICON) $(APP)/Contents/Resources/AppIcon.icns
+	# Nested code has to be signed before the bundle that seals it.
+	codesign --force --sign "$(SIGN_IDENTITY)" $(APP)/Contents/Helpers/shuck
 	codesign --force --sign "$(SIGN_IDENTITY)" $(APP)
 
 $(ICON): Scripts/make-icon.swift
@@ -36,8 +38,8 @@ install: build
 	/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f ~/Applications/Shuck.app
 	/System/Library/CoreServices/pbs -update
 	mkdir -p ~/.local/bin
-	# Not .build/release: SwiftPM points that at the last --arch built, which lacks the CLI.
-	cp "$$(swift build -c release --show-bin-path)/shuck" ~/.local/bin/shuck
+	# A link, so the command always matches the installed app.
+	ln -sf ~/Applications/Shuck.app/Contents/Helpers/shuck ~/.local/bin/shuck
 
 dist: build
 	rm -f $(ZIP)

@@ -58,7 +58,13 @@ Updates keep Accessibility access, because every release is signed with the same
 
 ## Command line
 
-The `shuck` command does the same in a shell. It's not in the release zip, so [build from source](#building-from-source) to get it.
+Shuck comes with a `shuck` command that does the same in a shell. To use it, link it into a folder on your `PATH`:
+
+```
+ln -s /Applications/Shuck.app/Contents/Helpers/shuck ~/.local/bin/shuck
+```
+
+Then:
 
 ```
 pbpaste | shuck        # stdin to stdout
@@ -73,7 +79,7 @@ Needs Swift 6 (Xcode 16 or later, or its Command Line Tools).
 make install
 ```
 
-This installs Shuck to `~/Applications` and the `shuck` command to `~/.local/bin`, which needs to be on your `PATH`.
+This installs Shuck to `~/Applications` and links the `shuck` command into `~/.local/bin`, which needs to be on your `PATH`.
 
 - `make test` runs the tests. It needs Xcode; set `XCODE_DEVELOPER` if Xcode isn't in `/Applications`.
 - `make dist` builds `build/Shuck.zip` for Apple Silicon and Intel.
@@ -104,7 +110,7 @@ Shuck guesses from line lengths and shape instead of parsing markdown:
 ## Uninstalling
 
 1. Quit Shuck with `killall Shuck`.
-2. Delete Shuck from Applications (or `~/Applications` if you built it), and `~/.local/bin/shuck` if you installed the command.
+2. Delete Shuck from Applications (or `~/Applications` if you built it), and the `shuck` link if you made one.
 3. Remove Shuck from System Settings > General > Login Items and from Privacy & Security > Accessibility.
 
 ## License
