@@ -58,10 +58,11 @@ Updates keep Accessibility access, because every release is signed with the same
 
 ## Command line
 
-Shuck comes with a `shuck` command that does the same in a shell. To use it, link it into a folder on your `PATH`:
+Shuck comes with a `shuck` command that does the same in a shell. To use it, link it into `/usr/local/bin`:
 
 ```
-ln -s /Applications/Shuck.app/Contents/Helpers/shuck ~/.local/bin/shuck
+sudo mkdir -p /usr/local/bin
+sudo ln -s /Applications/Shuck.app/Contents/Helpers/shuck /usr/local/bin/shuck
 ```
 
 Then:
