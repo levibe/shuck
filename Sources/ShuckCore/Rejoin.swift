@@ -8,12 +8,33 @@ private let widthSlack = 2
 /// Hanging indents set with a tab or by hand can overshoot the content column slightly.
 private let indentTolerance = 2
 
+/// A greedy wrap leaves each line within about a word of its width.
+private let raggedness = 10
+
+/// How many lines must end near a width before it counts as a hand wrap.
+private let quorum = 3
+
 /// Estimates the width the text was wrapped at, or nil when nothing looks wrapped.
 func wrapWidth(of lines: [Line]) -> Int? {
 	guard let width = lines.lazy.filter(\.isProse).map(\.width).max(),
 		width >= minimumWrapWidth
 	else { return nil }
 	return width
+}
+
+/// Estimates the width a writer wrapped the text at before a narrower terminal wrapped
+/// it again, given the text with the terminal's breaks joined. Only a joined line can
+/// be wider than the terminal, so several of them ending near one width, each with
+/// text still broken off after it, show the writer's wrap.
+func handWrapWidth(of lines: [Line], beyond terminalWidth: Int) -> Int? {
+	let widths = zip(lines, lines.dropFirst())
+		.filter { line, next in line.isProse && next.kind == .plain && line.width > terminalWidth }
+		.map { line, _ in line.width }
+		.sorted(by: >)
+	// The few lines past the crowd are the writer's breaks the terminal pass already joined.
+	return widths.indices.dropLast(quorum - 1)
+		.first { widths[$0] - widths[$0 + quorum - 1] <= raggedness }
+		.map { widths[$0] }
 }
 
 func rejoin(_ lines: [Line], width: Int) -> [String] {

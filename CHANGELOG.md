@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Rejoin text wrapped twice, such as a prompt Claude wrapped by hand in a code block that the terminal wrapped again.
 - Rejoin indented lines the terminal wrapped back to the left margin.
 - Keep a code span at the start of a line whole when deciding whether the line was wrapped.
 
