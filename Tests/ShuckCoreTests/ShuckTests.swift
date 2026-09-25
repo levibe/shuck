@@ -77,6 +77,14 @@ struct ProseTests {
 		#expect(shuck(pasted) == "Greedy wrappers only break a line when the next word would not fit on it, so wrapped text ends with a short line like this one from the terminal.")
 	}
 
+	@Test func codeSpanStartingALineCountsAsOneWord() {
+		let pasted = """
+			Before committing, lint each file with `npx eslint --fix <file>`,
+			`npx stylelint --fix <file>` and `swift format`, then run the full test suite.
+			"""
+		#expect(shuck(pasted) == "Before committing, lint each file with `npx eslint --fix <file>`, `npx stylelint --fix <file>` and `swift format`, then run the full test suite.")
+	}
+
 	@Test func numberedListJoinsAtContentColumn() {
 		let pasted = """
 			9. Build the release configuration of the command line tool, then copy the
@@ -264,6 +272,94 @@ struct TabTests {
 	@Test func tabIndentedContinuationJoins() {
 		let pasted = "- Launch the menu bar app, copy a hard-wrapped reply from the terminal,\n\tand paste it into Slack to confirm it reflows."
 		#expect(shuck(pasted) == "- Launch the menu bar app, copy a hard-wrapped reply from the terminal, and paste it into Slack to confirm it reflows.")
+	}
+}
+
+@Suite("Indented lines wrapped to the margin")
+struct MarginTests {
+	@Test func itemTextWrappedToTheMarginRejoins() {
+		let pasted = """
+			⏺ Here's the prompt:
+
+			  Steps:
+			  1. Collect every PR merged since v0.2.0 with
+			  `gh pr list --state merged`,
+			     then sort them into Added, Changed and
+			  Fixed before writing anything.
+			  2. Write each entry in one sentence, lint with
+			  `npx markdownlint-cli2 <file>`,
+			     and never run the linter on the vendored
+			  docs under third_party/docs.
+			  3. Build with `make dist SIGN_IDENTITY=levibe`
+			  and open the zip on a clean
+			     account, then upload it to the draft
+			  release and publish the notes.
+			"""
+		#expect(shuck(pasted) == """
+			Here's the prompt:
+
+			Steps:
+			1. Collect every PR merged since v0.2.0 with `gh pr list --state merged`, then sort them into Added, Changed and Fixed before writing anything.
+			2. Write each entry in one sentence, lint with `npx markdownlint-cli2 <file>`, and never run the linter on the vendored docs under third_party/docs.
+			3. Build with `make dist SIGN_IDENTITY=levibe` and open the zip on a clean account, then upload it to the draft release and publish the notes.
+			""")
+	}
+
+	@Test func stackFrameKeepsTheLineAfterIt() {
+		let pasted = """
+			TypeError: Cannot read properties of undefined (reading 'width')
+			    at measureColumns (/Users/jappleseed/Projects/app/src/columns.js:12:18)
+			Node.js v22.9.0
+			"""
+		#expect(shuck(pasted) == pasted)
+	}
+
+	@Test func indentedCommandKeepsTheProseAfterIt() {
+		let pasted = """
+			⏺ Install it, then link the command into your path:
+			    sudo ln -s /Applications/Shuck.app/Contents/Helpers/shuck /usr/local/bin/shuck
+			  Then run shuck --help to check that it works.
+			"""
+		#expect(shuck(pasted) == """
+			Install it, then link the command into your path:
+			  sudo ln -s /Applications/Shuck.app/Contents/Helpers/shuck /usr/local/bin/shuck
+			Then run shuck --help to check that it works.
+			""")
+	}
+
+	@Test func indentedCommandAmongFullLinesKeepsTheProseAfterIt() {
+		let pasted = """
+			⏺ I reran the release job after the flaky network step timed out, and
+			  it passed on the second try, so the zip on the release page is good.
+
+			  To install it locally, run:
+			      make install SIGN_IDENTITY=levibe && open ~/Applications/Shuck.app
+			  Then press the shortcut once to check that it still pastes.
+			"""
+		#expect(shuck(pasted) == """
+			I reran the release job after the flaky network step timed out, and it passed on the second try, so the zip on the release page is good.
+
+			To install it locally, run:
+			    make install SIGN_IDENTITY=levibe && open ~/Applications/Shuck.app
+			Then press the shortcut once to check that it still pastes.
+			""")
+	}
+
+	/// Known limitation: an indented line outside a list item reads as code, so the
+	/// rest of it, wrapped back to the margin, stays on its own line.
+	@Test func indentedCommandWrappedToTheMarginStaysSplit() {
+		let pasted = """
+			⏺ Build both architectures from the root of the repository:
+			    swift build -c release --product shuck --arch arm64 --arch x86_64 --scratch-path
+			  .build/universal
+			    make install
+			"""
+		#expect(shuck(pasted) == """
+			Build both architectures from the root of the repository:
+			  swift build -c release --product shuck --arch arm64 --arch x86_64 --scratch-path
+			.build/universal
+			  make install
+			""")
 	}
 }
 

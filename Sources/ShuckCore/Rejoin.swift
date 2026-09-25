@@ -8,6 +8,12 @@ private let widthSlack = 2
 /// Hanging indents set with a tab or by hand can overshoot the content column slightly.
 private let indentTolerance = 2
 
+/// A greedy wrap leaves each line within about a word of its width.
+private let raggedness = 10
+
+/// How many lines must end near a width before it counts as a hand wrap.
+private let quorum = 3
+
 /// Estimates the width the text was wrapped at, or nil when nothing looks wrapped.
 func wrapWidth(of lines: [Line]) -> Int? {
 	guard let width = lines.lazy.filter(\.isProse).map(\.width).max(),
@@ -16,13 +22,28 @@ func wrapWidth(of lines: [Line]) -> Int? {
 	return width
 }
 
+/// Estimates the width a writer wrapped the text at before a narrower terminal wrapped
+/// it again, given the text with the terminal's breaks joined. Only a joined line can
+/// be wider than the terminal, so several of them ending near one width, each with
+/// text still broken off after it, show the writer's wrap.
+func handWrapWidth(of lines: [Line], beyond terminalWidth: Int) -> Int? {
+	let widths = zip(lines, lines.dropFirst())
+		.filter { line, next in line.isProse && next.kind == .plain && line.width > terminalWidth }
+		.map { line, _ in line.width }
+		.sorted(by: >)
+	// The few lines past the crowd are the writer's breaks the terminal pass already joined.
+	return widths.indices.dropLast(quorum - 1)
+		.first { widths[$0] - widths[$0 + quorum - 1] <= raggedness }
+		.map { widths[$0] }
+}
+
 func rejoin(_ lines: [Line], width: Int) -> [String] {
 	var logicalLines: [LogicalLine] = []
 	for line in lines {
 		if let separator = logicalLines.last?.separator(joining: line, width: width) {
 			logicalLines[logicalLines.count - 1].append(line, separator: separator)
 		} else {
-			logicalLines.append(LogicalLine(line))
+			logicalLines.append(LogicalLine(line, after: logicalLines.last))
 		}
 	}
 	return logicalLines.map(\.text)
@@ -33,22 +54,34 @@ private struct LogicalLine {
 	private(set) var text: String
 	private var last: Line
 	private let continuationIndents: ClosedRange<Int>
+	/// Where the text of the list item this line belongs to continues, if it's in one.
+	private let itemIndents: ClosedRange<Int>?
 
-	init(_ line: Line) {
+	init(_ line: Line, after previous: LogicalLine?) {
 		text = line.text
 		last = line
 		continuationIndents = line.indent...(line.contentColumn + indentTolerance)
+		// An indented line under an item is more of the item's text; under anything
+		// else it's code, a command or a stack frame.
+		itemIndents = if line.kind == .listItem {
+			continuationIndents
+		} else if let indents = previous?.itemIndents, line.indent > 0, indents.contains(line.indent) {
+			indents
+		} else {
+			nil
+		}
 	}
 
 	/// How to join `next` onto this line, or nil when the break looks deliberate.
 	func separator(joining next: Line, width: Int) -> String? {
-		// A trailing backslash is a shell continuation or a markdown hard break.
+		// A trailing backslash is a shell continuation or a markdown hard break. A
+		// terminal wraps an item's indented text back to the margin, not to its indent.
 		guard last.isWrappable, next.kind == .plain, !last.text.hasSuffix("\\"),
-			continuationIndents.contains(next.indent)
+			continuationIndents.contains(next.indent) || (itemIndents != nil && next.indent == 0)
 		else { return nil }
 		// Greedy wrappers break only when the next word won't fit, so a word that
 		// would have fit on the previous line means the break was deliberate.
-		guard last.width + 1 + columns(next.firstToken) > width - widthSlack else { return nil }
+		guard last.width + 1 + columns(next.firstWord) > width - widthSlack else { return nil }
 		if isHardBreak(before: next, width: width) {
 			return ""
 		}

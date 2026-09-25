@@ -44,14 +44,14 @@ enum Paste: CaseIterable, CustomTestStringConvertible {
 	}
 }
 
-private func claudeList() throws -> String {
-	let url = try #require(Bundle.module.url(forResource: "claude-list", withExtension: "txt", subdirectory: "Fixtures"))
+func fixture(_ name: String) throws -> String {
+	let url = try #require(Bundle.module.url(forResource: name, withExtension: "txt", subdirectory: "Fixtures"))
 	return try String(contentsOf: url, encoding: .utf8)
 }
 
 @Test(arguments: Paste.allCases)
 func claudeListUnwraps(_ paste: Paste) throws {
-	#expect(shuck(paste.applied(to: try claudeList())) == expected)
+	#expect(shuck(paste.applied(to: try fixture("claude-list"))) == expected)
 }
 
 @Test func unwrappedClaudeListIsStable() {
