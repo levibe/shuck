@@ -48,7 +48,7 @@ private struct LogicalLine {
 		else { return nil }
 		// Greedy wrappers break only when the next word won't fit, so a word that
 		// would have fit on the previous line means the break was deliberate.
-		guard last.width + 1 + columns(next.firstToken) > width - widthSlack else { return nil }
+		guard last.width + 1 + columns(next.firstWord) > width - widthSlack else { return nil }
 		if isHardBreak(before: next, width: width) {
 			return ""
 		}

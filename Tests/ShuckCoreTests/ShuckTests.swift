@@ -77,6 +77,14 @@ struct ProseTests {
 		#expect(shuck(pasted) == "Greedy wrappers only break a line when the next word would not fit on it, so wrapped text ends with a short line like this one from the terminal.")
 	}
 
+	@Test func codeSpanStartingALineCountsAsOneWord() {
+		let pasted = """
+			Before committing, lint each file with `npx eslint --fix <file>`,
+			`npx stylelint --fix <file>` and `swift format`, then run the full test suite.
+			"""
+		#expect(shuck(pasted) == "Before committing, lint each file with `npx eslint --fix <file>`, `npx stylelint --fix <file>` and `swift format`, then run the full test suite.")
+	}
+
 	@Test func numberedListJoinsAtContentColumn() {
 		let pasted = """
 			9. Build the release configuration of the command line tool, then copy the

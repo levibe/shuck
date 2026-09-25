@@ -26,6 +26,12 @@ struct Line {
 
 	var width: Int { columns(text) }
 	var firstToken: Substring { content.prefix { $0 != " " } }
+	/// `firstToken`, except that a code span starting the line counts whole, with any
+	/// punctuation after it: a writer wrapping by hand keeps a span on one line.
+	var firstWord: Substring {
+		let start = content.prefixMatch(of: /`[^`]+`/)?.range.upperBound ?? content.startIndex
+		return content[..<(content[start...].firstIndex(of: " ") ?? content.endIndex)]
+	}
 	var lastToken: Substring { content.split(separator: " ").last ?? content }
 
 	/// Where the item's text starts, which a hanging indent lines up with.
