@@ -46,6 +46,20 @@ struct CommandTests {
 			""")
 	}
 
+	@Test func indentedLineWrappedToTheMarginRejoins() {
+		let pasted = """
+			⏺ Build both architectures from the root of the repository:
+			    swift build -c release --product shuck --arch arm64 --arch x86_64 --scratch-path
+			  .build/universal
+			    make install
+			"""
+		#expect(shuck(pasted) == """
+			Build both architectures from the root of the repository:
+			  swift build -c release --product shuck --arch arm64 --arch x86_64 --scratch-path .build/universal
+			  make install
+			""")
+	}
+
 	@Test func trailingBackslashKeepsBreak() {
 		let pasted = #"""
 			  swift build -c release --product shuck --arch arm64 --arch x86_64 \

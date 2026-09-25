@@ -42,9 +42,10 @@ private struct LogicalLine {
 
 	/// How to join `next` onto this line, or nil when the break looks deliberate.
 	func separator(joining next: Line, width: Int) -> String? {
-		// A trailing backslash is a shell continuation or a markdown hard break.
+		// A trailing backslash is a shell continuation or a markdown hard break. A
+		// terminal wraps an indented line back to the margin, not to its indent.
 		guard last.isWrappable, next.kind == .plain, !last.text.hasSuffix("\\"),
-			continuationIndents.contains(next.indent)
+			continuationIndents.contains(next.indent) || next.indent == 0
 		else { return nil }
 		// Greedy wrappers break only when the next word won't fit, so a word that
 		// would have fit on the previous line means the break was deliberate.
