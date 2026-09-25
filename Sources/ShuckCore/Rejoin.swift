@@ -43,7 +43,7 @@ func rejoin(_ lines: [Line], width: Int) -> [String] {
 		if let separator = logicalLines.last?.separator(joining: line, width: width) {
 			logicalLines[logicalLines.count - 1].append(line, separator: separator)
 		} else {
-			logicalLines.append(LogicalLine(line))
+			logicalLines.append(LogicalLine(line, after: logicalLines.last))
 		}
 	}
 	return logicalLines.map(\.text)
@@ -54,19 +54,30 @@ private struct LogicalLine {
 	private(set) var text: String
 	private var last: Line
 	private let continuationIndents: ClosedRange<Int>
+	/// Where the text of the list item this line belongs to continues, if it's in one.
+	private let itemIndents: ClosedRange<Int>?
 
-	init(_ line: Line) {
+	init(_ line: Line, after previous: LogicalLine?) {
 		text = line.text
 		last = line
 		continuationIndents = line.indent...(line.contentColumn + indentTolerance)
+		// An indented line under an item is more of the item's text; under anything
+		// else it's code, a command or a stack frame.
+		itemIndents = if line.kind == .listItem {
+			continuationIndents
+		} else if let indents = previous?.itemIndents, line.indent > 0, indents.contains(line.indent) {
+			indents
+		} else {
+			nil
+		}
 	}
 
 	/// How to join `next` onto this line, or nil when the break looks deliberate.
 	func separator(joining next: Line, width: Int) -> String? {
 		// A trailing backslash is a shell continuation or a markdown hard break. A
-		// terminal wraps an indented line back to the margin, not to its indent.
+		// terminal wraps an item's indented text back to the margin, not to its indent.
 		guard last.isWrappable, next.kind == .plain, !last.text.hasSuffix("\\"),
-			continuationIndents.contains(next.indent) || next.indent == 0
+			continuationIndents.contains(next.indent) || (itemIndents != nil && next.indent == 0)
 		else { return nil }
 		// Greedy wrappers break only when the next word won't fit, so a word that
 		// would have fit on the previous line means the break was deliberate.
