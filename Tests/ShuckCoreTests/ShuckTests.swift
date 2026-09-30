@@ -158,6 +158,56 @@ struct PartialGutterTests {
 			""")
 	}
 
+	@Test func selectionStartingInsideAnItemJoinsItsWrappedText() {
+		let pasted = """
+			! git branch -D
+			    208-feed-from-slug 242-legal-about-pages
+			    244-security-headers 256-hello-inbox 273-db-batch
+			    62-atomic-onboarding-profile-writes 78-tag-vocabulary
+			    86-magic-link-rule-applied cloudflare-email share-modal
+			"""
+		#expect(shuck(pasted) == "! git branch -D 208-feed-from-slug 242-legal-about-pages 244-security-headers 256-hello-inbox 273-db-batch 62-atomic-onboarding-profile-writes 78-tag-vocabulary 86-magic-link-rule-applied cloudflare-email share-modal")
+	}
+
+	@Test func selectionStartingAtTheFirstWordKeepsAnIndentedCommand() {
+		let pasted = """
+			Install it, then link the command into your path:
+			    sudo ln -s /Applications/Shuck.app/Contents/Helpers/shuck /usr/local/bin/shuck
+			  Then run shuck --help to check that it works.
+			"""
+		#expect(shuck(pasted) == """
+			Install it, then link the command into your path:
+			  sudo ln -s /Applications/Shuck.app/Contents/Helpers/shuck /usr/local/bin/shuck
+			Then run shuck --help to check that it works.
+			""")
+	}
+
+	/// Indented lines that merely join each other don't make the line above a cut item.
+	@Test(arguments: [
+		// The widest frame joins the next (see `longestLineJoinsWhateverFollows`).
+		"""
+		TypeError: Cannot read properties of undefined (reading 'width')
+		    at measureColumns (/Users/jappleseed/Projects/app/src/columns.js:12:18)
+		    at Array.map (<anonymous>)
+		""",
+		// So does a frame a column short of the widest line.
+		"""
+		TypeError: Cannot read properties of undefined (reading 'width') in columns
+		      at measureColumns (/Users/jappleseed/Projects/app/src/columns.js:12:1)
+		      at render (/Users/jappleseed/Projects/app/src/render.js:40:9)
+		""",
+		// A line ending in a colon introduces what's under it.
+		"""
+		The error message now reads:
+		    Could not connect to the database server at db.internal:5432
+		    because the connection pool was exhausted after thirty
+		    seconds of retries.
+		""",
+	])
+	func selectionStartingAtTheFirstWordKeepsTheFirstLineApart(_ pasted: String) {
+		#expect(shuck(pasted).prefix { $0 != "\n" } == pasted.prefix { $0 != "\n" })
+	}
+
 	@Test func deeperIndentsStayRelativeToTheGutter() {
 		#expect(shuck("def f():\n      return 1") == "def f():\n    return 1")
 	}

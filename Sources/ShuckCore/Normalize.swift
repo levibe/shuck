@@ -6,17 +6,21 @@ private let gutterGlyphs: Set<Unicode.Scalar> = ["\u{23FA}", "\u{25CF}"]
 private let gutter = "  "
 
 /// Strips trailing whitespace, Claude Code's gutter and any common indent, and
-/// drops blank lines at either end. Leading tabs are kept as they are.
-func normalizedLines(_ text: String) -> [String] {
+/// drops blank lines at either end. Leading tabs are kept as they are. Also says
+/// whether the selection skipped the gutter, which leaves where it started unknown.
+func normalizedLines(_ text: String) -> (lines: [String], skippedGutter: Bool) {
 	let lines = text
 		.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline)
 		.map(trimmingTrailingWhitespace)
 	guard let first = lines.firstIndex(where: { !$0.isEmpty }),
 		let last = lines.lastIndex(where: { !$0.isEmpty })
-	else { return [] }
+	else { return ([], false) }
 	var trimmed = Array(lines[first...last])
 	trimmed[0] = blankingGutterGlyph(trimmed[0])
-	return strippingPartialGutter(trimmed) ?? dedented(trimmed)
+	if let stripped = strippingPartialGutter(trimmed) {
+		return (stripped, true)
+	}
+	return (dedented(trimmed), false)
 }
 
 private func trimmingTrailingWhitespace(_ line: Substring) -> String {
