@@ -51,22 +51,7 @@ struct Line {
 	var isLongToken: Bool { isWrappable && !body.contains(" ") && body.count > longTokenLength }
 
 	static func classify(_ texts: [String]) -> [Line] {
-		var openFence: String?
-		var lines: [Line] = []
-		for text in texts {
-			let content = text.drop(while: \.isIndentation)
-			var fenced = openFence != nil
-			if let fence = openFence {
-				if content.hasPrefix(fence) {
-					openFence = nil
-				}
-			} else if let fence = fenceMarkers.first(where: { content.hasPrefix($0) }) {
-				openFence = fence
-				fenced = true
-			}
-			lines.append(Line(text, fenced: fenced))
-		}
-		return lines
+		zip(texts, fencedLines(texts)).map { Line($0, fenced: $1) }
 	}
 
 	private init(_ text: String, fenced: Bool) {
@@ -91,7 +76,7 @@ struct Line {
 	}
 
 	private static func isStructural(_ content: Substring) -> Bool {
-		// Markdown tables, and the box-drawn tables Claude Code renders them as.
+		// Markdown tables, and box drawings: trees, panels, tables cut off by the selection.
 		content.hasPrefix("|")
 			|| content.unicodeScalars.contains { boxDrawing.contains($0) }
 			|| content.prefixMatch(of: /#+[ ]/) != nil
@@ -103,5 +88,21 @@ struct Line {
 	/// prose, except a typist's two spaces after a sentence.
 	private static func hasAlignmentGap(_ body: Substring) -> Bool {
 		body.contains(/[ ]{3,}|[^.!?][ ]{2}/)
+	}
+}
+
+/// Whether each line is inside a fenced code block, counting the fences themselves.
+func fencedLines(_ texts: [String]) -> [Bool] {
+	var openFence: String?
+	return texts.map { text in
+		let content = text.drop(while: \.isIndentation)
+		if let fence = openFence {
+			if content.hasPrefix(fence) {
+				openFence = nil
+			}
+			return true
+		}
+		openFence = fenceMarkers.first { content.hasPrefix($0) }
+		return openFence != nil
 	}
 }

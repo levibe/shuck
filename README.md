@@ -25,7 +25,7 @@ Next steps:
 - Update the changelog
 ```
 
-It works on any terminal or hard-wrapped text. Wrapped shell commands become one line again, and lists, headings, tables and code stay as they are.
+It works on any terminal or hard-wrapped text. Wrapped shell commands become one line again, tables Claude Code draws with boxes become markdown tables, and lists, headings and code stay as they are.
 
 ## Installing
 
@@ -97,6 +97,7 @@ A free self-signed certificate works:
 Shuck guesses from line lengths and shape instead of parsing markdown:
 
 - Removes trailing spaces and Claude Code's 2-space margin, even when your selection starts at the first word.
+- Turns a box-drawn table back into a markdown table, one line per row. A table copied without its top or bottom border stays as drawn, as do box diagrams and boxes in code blocks.
 - Takes the longest line with a space in it as the wrap width.
 - Joins a line to the one before only if its first word wouldn't have fit there. Otherwise the break was on purpose, so it stays.
 - Never merges list items (including ✓ or → bullets), headings, blockquotes, tables, aligned columns, fenced code, or lines ending in `\`.
