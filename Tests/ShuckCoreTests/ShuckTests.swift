@@ -504,6 +504,8 @@ struct StructureTests {
 		"┌──────┬────────┐\n│ name │ status │\n├──────┼────────┤\n│ core │ green  │",
 		// Fenced code.
 		"```\n┌──────┬────────┐\n│ name │ status │\n├──────┼────────┤\n│ core │ green  │\n└──────┴────────┘\n```",
+		// Inside a longer fence, past a shorter one.
+		"````\n```\n┌──────┬────────┐\n│ name │ status │\n├──────┼────────┤\n│ core │ green  │\n└──────┴────────┘\n````",
 		// A one-column box with a divider.
 		"┌────────┐\n│ Header │\n├────────┤\n│ body   │\n└────────┘",
 		// Boxes side by side.

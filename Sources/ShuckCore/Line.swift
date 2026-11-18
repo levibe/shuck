@@ -1,4 +1,3 @@
-private let fenceMarkers = ["```", "~~~"]
 private let boxDrawing: ClosedRange<Unicode.Scalar> = "\u{2500}"..."\u{257F}"
 
 /// Past this length a lone token (a path, a URL) is as likely a line of its own
@@ -93,16 +92,20 @@ struct Line {
 
 /// Whether each line is inside a fenced code block, counting the fences themselves.
 func fencedLines(_ texts: [String]) -> [Bool] {
-	var openFence: String?
+	var openFence: Substring?
 	return texts.map { text in
 		let content = text.drop(while: \.isIndentation)
+		let run = content.prefixMatch(of: /`{3,}|~{3,}/)?.output
 		if let fence = openFence {
-			if content.hasPrefix(fence) {
+			// As in CommonMark, only a run of the same character at least as long, alone
+			// on its line, closes the block.
+			if let run, run.first == fence.first, run.count >= fence.count,
+				content.dropFirst(run.count).allSatisfy(\.isWhitespace) {
 				openFence = nil
 			}
 			return true
 		}
-		openFence = fenceMarkers.first { content.hasPrefix($0) }
-		return openFence != nil
+		openFence = run
+		return run != nil
 	}
 }
