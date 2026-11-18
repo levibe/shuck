@@ -442,22 +442,79 @@ struct StructureTests {
 			""")
 	}
 
-	@Test func boxDrawnTableIsPreserved() {
+	@Test func boxDrawnTableBecomesMarkdown() {
 		let pasted = """
 			Here is where each target stands after the latest round of changes, with
 			the tests included in the core row of the summary table below this line:
 			┌──────┬────────┐
+			│ name │ status │
+			├──────┼────────┤
 			│ core │ green  │
-			│ cli  │ red    │
+			│ cli  │ a | b  │
 			└──────┴────────┘
 			"""
-		#expect(shuck(pasted) == """
+		#expect(shuck(pasted) == #"""
 			Here is where each target stands after the latest round of changes, with the tests included in the core row of the summary table below this line:
-			┌──────┬────────┐
-			│ core │ green  │
-			│ cli  │ red    │
-			└──────┴────────┘
+			| name | status |
+			| --- | --- |
+			| core | green |
+			| cli | a \| b |
+			"""#)
+	}
+
+	@Test func wrappedRowUnderAHeaderRuleJoins() {
+		let pasted = """
+			┌──────┬──────────────┐
+			│ name │ status       │
+			├──────┼──────────────┤
+			│ core │ green on the │
+			│      │ second try   │
+			└──────┴──────────────┘
+			"""
+		#expect(shuck(pasted) == """
+			| name | status |
+			| --- | --- |
+			| core | green on the second try |
 			""")
+	}
+
+	@Test func boxDrawnTableKeepsItsIndent() {
+		let pasted = """
+			  1. Status:
+			     ┌──────┬────────┐
+			     │ name │ status │
+			     ├──────┼────────┤
+			     │ core │ green  │
+			     └──────┴────────┘
+			"""
+		#expect(shuck(pasted) == """
+			1. Status:
+			   | name | status |
+			   | --- | --- |
+			   | core | green |
+			""")
+	}
+
+	@Test(arguments: [
+		// No header rule.
+		"┌──────┬────────┐\n│ core │ green  │\n│ cli  │ red    │\n└──────┴────────┘",
+		// Cut off below the top border.
+		"│ core │ green  │\n├──────┼────────┤\n│ cli  │ red    │\n└──────┴────────┘",
+		// Cut off above the bottom border.
+		"┌──────┬────────┐\n│ name │ status │\n├──────┼────────┤\n│ core │ green  │",
+		// Fenced code.
+		"```\n┌──────┬────────┐\n│ name │ status │\n├──────┼────────┤\n│ core │ green  │\n└──────┴────────┘\n```",
+		// Inside a longer fence, past a shorter one.
+		"````\n```\n┌──────┬────────┐\n│ name │ status │\n├──────┼────────┤\n│ core │ green  │\n└──────┴────────┘\n````",
+		// A one-column box with a divider.
+		"┌────────┐\n│ Header │\n├────────┤\n│ body   │\n└────────┘",
+		// Boxes side by side.
+		"┌─────┐   ┌─────┐\n│ app │   │ api │\n├─────┤   ├─────┤\n│ ui  │──>│ db  │\n└─────┘   └─────┘",
+		// Text after the border.
+		"┌──────┬────────┐\n│ name │ status │\n├──────┼────────┤\n│ core │ green  │  ← new\n└──────┴────────┘",
+	])
+	func boxDrawingThatIsNotAWholeTableStaysDrawn(_ pasted: String) {
+		#expect(shuck(pasted) == pasted)
 	}
 
 	@Test func markdownTableIsPreserved() {

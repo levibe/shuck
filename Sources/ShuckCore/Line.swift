@@ -1,4 +1,3 @@
-private let fenceMarkers = ["```", "~~~"]
 private let boxDrawing: ClosedRange<Unicode.Scalar> = "\u{2500}"..."\u{257F}"
 
 /// Past this length a lone token (a path, a URL) is as likely a line of its own
@@ -51,22 +50,7 @@ struct Line {
 	var isLongToken: Bool { isWrappable && !body.contains(" ") && body.count > longTokenLength }
 
 	static func classify(_ texts: [String]) -> [Line] {
-		var openFence: String?
-		var lines: [Line] = []
-		for text in texts {
-			let content = text.drop(while: \.isIndentation)
-			var fenced = openFence != nil
-			if let fence = openFence {
-				if content.hasPrefix(fence) {
-					openFence = nil
-				}
-			} else if let fence = fenceMarkers.first(where: { content.hasPrefix($0) }) {
-				openFence = fence
-				fenced = true
-			}
-			lines.append(Line(text, fenced: fenced))
-		}
-		return lines
+		zip(texts, fencedLines(texts)).map { Line($0, fenced: $1) }
 	}
 
 	private init(_ text: String, fenced: Bool) {
@@ -91,7 +75,7 @@ struct Line {
 	}
 
 	private static func isStructural(_ content: Substring) -> Bool {
-		// Markdown tables, and the box-drawn tables Claude Code renders them as.
+		// Markdown tables, and box drawings: trees, panels, tables cut off by the selection.
 		content.hasPrefix("|")
 			|| content.unicodeScalars.contains { boxDrawing.contains($0) }
 			|| content.prefixMatch(of: /#+[ ]/) != nil
@@ -103,5 +87,25 @@ struct Line {
 	/// prose, except a typist's two spaces after a sentence.
 	private static func hasAlignmentGap(_ body: Substring) -> Bool {
 		body.contains(/[ ]{3,}|[^.!?][ ]{2}/)
+	}
+}
+
+/// Whether each line is inside a fenced code block, counting the fences themselves.
+func fencedLines(_ texts: [String]) -> [Bool] {
+	var openFence: Substring?
+	return texts.map { text in
+		let content = text.drop(while: \.isIndentation)
+		let run = content.prefixMatch(of: /`{3,}|~{3,}/)?.output
+		if let fence = openFence {
+			// As in CommonMark, only a run of the same character at least as long, alone
+			// on its line, closes the block.
+			if let run, run.first == fence.first, run.count >= fence.count,
+				content.dropFirst(run.count).allSatisfy(\.isWhitespace) {
+				openFence = nil
+			}
+			return true
+		}
+		openFence = run
+		return run != nil
 	}
 }
